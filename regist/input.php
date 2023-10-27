@@ -1,103 +1,62 @@
 <?php
-// 2023-10-27 3.week6
-
 // セッションスタート
 session_start();
 session_regenerate_id(true);
 
-// POSTリクエストのデータを 変数 regist に代入
-$regist = check($_POST);
-
-//TODO: データチェック（バリデーション）
-unset($_SESSION['errors']);
-validateName($regist['name']);
-validatePassword($regist['password']);
-
+if (isset($_SESSION['regist'])) {
+    $regist = $_SESSION['regist'];
+}
 if (isset($_SESSION['errors'])) {
-    header('Location: input.php');
-    exit;
+    $errors = $_SESSION['errors'];
 }
 
-// セッション保存
-$_SESSION['regist'] = $regist;
-
-$genders['male'] = "男性";
-$genders['female'] = "女性";
-
-/**
- * バリデート（validate）
- */
-function validateName($name)
+function checked($value, $checkValue)
 {
-    $error = "";
-    // パスワードが8文字以上、20文字以内でなければ、入力画面にリダイレクト
-    if (empty($name)) {
-        $error = "名前を入力してください";
-    }
-    if ($error) $_SESSION['errors']['name'] = $error;
+    return ($value == $checkValue) ? 'checked' : '';
 }
 
-/**
- * バリデート（validate）
- */
-function validatePassword($password)
+function selected($value, $checkValue)
 {
-    $error = "";
-    // パスワードが8文字以上、20文字以内でなければ、入力画面にリダイレクト
-    if (empty($password)) {
-        $error = "パスワードは８文字以上、20文字以内で入力してください";
-    } else if (
-        mb_strlen($password) < 8 ||
-        mb_strlen($password) > 20
-    ) {
-        $error = "パスワードは８文字以上、20文字以内で入力してください";
-    }
-    if ($error) $_SESSION['errors']['password'] = $error;
-}
-
-/**
- * サニタイズ
- */
-function check($posts)
-{
-    if (empty($posts)) return;
-    foreach ($posts as
-        $column => $post) {
-        $posts[$column] =
-            htmlspecialchars($post, ENT_QUOTES, 'UTF-8');
-    }
-    return $posts;
+    return ($value == $checkValue) ? 'selected' : '';
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- 1つ上の階層の componentsフォルダの head.php を読み込む -->
 <?php include('../components/head.php'); ?>
 
 <body>
     <?php include('../components/nav.php'); ?>
 
     <div class="container">
-        <h1>確認画面</h1>
-        <p>この内容で登録してもよろしいですか？</p>
-        <div>
-            <form action="store.php" method="post">
-                <div class="mb-3">
-                    <label class="form-label" for="">氏名</label>
-                    <?= $regist['name'] ?>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" for="">Email</label>
-                    <?= $regist['email'] ?>
-                </div>
+        <h1>入力画面</h1>
 
-                <div class="mb-3">
-                    <button class="w-100 mb-2 btn btn-primary">登録</button>
-                    <a class="w-100 btn btn-outline-primary" href="input.php">戻る</a>
-                </div>
-            </form>
-        </div>
+        <?php if (isset($errors)): ?>
+        <ul>
+            <?php foreach ($errors as $error) : ?>
+                <li class="text-danger"><?= $error ?></li>
+            <?php endforeach ?>
+        </ul>
+        <?php endif ?>
+
+        <form action="confirm.php" method="post">
+            <div class="form-group">
+                <label class="form-label" for="">氏名</label>
+                <input class="form-control" type="text" name="name" value="<?= @$regist['name'] ?>">
+            </div>
+            <div>
+                <label class="form-label" for="">Email</label>
+                <input class="form-control" type="email" name="email" value="<?= @$regist['email'] ?>">
+            </div>
+            <div>
+                <label class="form-label" for="">パスワード</label>
+                <input class="form-control" type="password" name="password">
+            </div>
+            <div class="mt-3">
+                <button class="w-100 btn btn-primary">確認</button>
+            </div>
+        </form>
     </div>
 </body>
 
