@@ -1,6 +1,4 @@
 <?php
-// 2023-10-27 3.week6
-
 //セッション開始
 session_start();
 session_regenerate_id(true);
