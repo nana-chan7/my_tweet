@@ -1,42 +1,68 @@
 <?php
-class Model
+require_once 'Model.php';
+class Tweet extends Model
 {
-    public $pdo;
-    public $value;
-    public $values;
-    function __construct()
-    {
-        $db_connection = DB_CONNECTION;
-        $db_name = DB_DATABASE;
-        $db_host = DB_HOST;
-        $db_port = DB_HOST;
-        $db_user = DB_USERNAME;
-        $db_password = DB_PASSWORD;
 
-        $dsn = "{$db_connection}:dbname={$db_name};host={$db_host};charset=utf8;port={$db_port}";
-        try {
-            $this->pdo = new PDO($dsn, $db_user, $db_password);
-            $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-            $this->pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
-        } catch (PDOException $e) {
-            echo "接続失敗: " . $e->getMessage();
-            exit;
-        }
+    public function validate($data) {
+        //TODO: messageが未入力の時のエラーチェック
     }
 
-    public function check($data)
+    public function fetch($id)
     {
-        if (empty($data)) return;
-        foreach ($data as $column => $value) {
-            $data[$column] = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-        }
-        return $data;
+        //Tweet IDで1件データ取得するSQL
+        $sql = "SELECT * FROM tweets WHERE id = {$id};";
+        //SQL実行
+        $value = $this->pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+        return $value;
     }
 
-    public function bind($data)
+    public function get()
     {
-        $data = $this->check($data);
-        $this->value = $data;
+        // 投稿データを投稿日時の新しい順に20件取得
+        // ユーザ名も結合（JOIN）
+        $sql = "SELECT 
+                    tweets.id,
+                    tweets.user_id,
+                    tweets.message,
+                    tweets.created_at,
+                    users.name AS user_name
+                FROM tweets 
+                JOIN users ON tweets.user_id = users.id
+                ORDER BY tweets.created_at DESC 
+                LIMIT 20;";
+        //SQL実行
+        $values = $this->pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+        $this->values = $values;
+        return $values;
     }
 
+    /**
+     * Tweet投稿
+     * @param array $data
+     * @return boolean
+     */
+    public function insert($data)
+    {
+        //tweets にログインユーザIDとメッセージを挿入するSQL
+        $sql = "INSERT INTO tweets (user_id, message)
+                VALUES (:user_id, :message)";
+        $stmt = $this->pdo->prepare($sql);
+        //MySQLに実行
+        return $stmt->execute($data);
+    }
+
+    /**
+     * Tweet削除
+     * @param int $id
+     * @return boolean
+     */
+    public function delete($id)
+    {
+        $data['id'] = $id;
+        //TweetのIDでデータを削除
+        $sql = "DELETE FROM tweets WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        //MySQLに実行
+        return $stmt->execute($data);
+    }
 }

@@ -1,5 +1,3 @@
-<!-- 2023-10-27 3.week6 -->
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
